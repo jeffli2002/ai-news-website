@@ -167,7 +167,7 @@ function App() {
                 }`}
                 title={source}
               >
-                {source}
+                {cleanSourceName(source)}
               </button>
             ))}
           </div>

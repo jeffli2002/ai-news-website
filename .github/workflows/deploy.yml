@@ -1,0 +1,64 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'frontend/package-lock.json'
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Python dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+
+    - name: Deploy to Vercel
+      run: |
+        # Install Vercel CLI
+        npm install -g vercel@latest
+        
+        # Pull Vercel environment information
+        vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        
+        # Build the project files
+        vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        
+        # Deploy the output to Vercel
+        vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      env:
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    - name: Verify deployment
+      run: |
+        echo "Application deployed successfully!"
+        echo "Check your deployment at: https://${{ secrets.VERCEL_PROJECT_NAME }}.vercel.app"

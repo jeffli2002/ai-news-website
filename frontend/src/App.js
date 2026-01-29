@@ -1,0 +1,219 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import moment from 'moment';
+import 'moment/locale/zh-cn';
+import './App.css';
+
+function App() {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSource, setSelectedSource] = useState('');
+  const [sources, setSources] = useState([]);
+  const [stats, setStats] = useState({});
+
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    fetchData();
+    fetchSources();
+    fetchStats();
+    
+    // Refresh data every 10 minutes
+    const interval = setInterval(fetchData, 600000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/news?per_page=50`);
+      setArticles(response.data.articles);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSources = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/sources`);
+      setSources(response.data.sources);
+    } catch (error) {
+      console.error('Error fetching sources:', error);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/stats`);
+      setStats(response.data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) {
+      fetchData();
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/news/search?q=${encodeURIComponent(searchTerm)}`);
+      setArticles(response.data.articles);
+    } catch (error) {
+      console.error('Error searching news:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterBySource = (source) => {
+    if (!source) {
+      fetchData();
+      return;
+    }
+
+    const filtered = articles.filter(article => article.source === source);
+    setArticles(filtered);
+  };
+
+  const formatDate = (dateString) => {
+    moment.locale('zh-cn');
+    return moment(dateString).fromNow();
+  };
+
+  return (
+    <div className="App">
+      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-6 px-4 shadow-lg">
+        <div className="container mx-auto">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">🤖 AI 科技新闻聚合</h1>
+          <p className="text-blue-100">实时聚合最新的人工智能、机器学习、深度学习等领域新闻</p>
+          
+          <div className="mt-4 flex flex-col sm:flex-row gap-4 justify-between items-center">
+            <div className="flex flex-wrap gap-2">
+              <div className="bg-blue-500 bg-opacity-50 px-3 py-1 rounded-full text-sm">
+                总文章数: {stats.total_articles || 0}
+              </div>
+              <div className="bg-indigo-500 bg-opacity-50 px-3 py-1 rounded-full text-sm">
+                数据源: {stats.total_sources || 0}个
+              </div>
+            </div>
+            
+            <form onSubmit={handleSearch} className="flex flex-grow max-w-md">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="搜索AI新闻..."
+                className="flex-grow px-4 py-2 rounded-l-lg text-gray-800 focus:outline-none"
+              />
+              <button 
+                type="submit"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-r-lg font-medium transition-colors"
+              >
+                搜索
+              </button>
+            </form>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto py-6 px-4">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-3">筛选来源:</h2>
+          <div className="flex flex-wrap gap-2">
+            <button 
+              onClick={() => filterBySource('')}
+              className={`px-3 py-1 rounded-full text-sm ${!selectedSource ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+            >
+              全部
+            </button>
+            {sources.slice(0, 10).map((source, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setSelectedSource(source);
+                  filterBySource(source);
+                }}
+                className={`px-3 py-1 rounded-full text-sm truncate max-w-[200px] ${
+                  selectedSource === source 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                }`}
+                title={source}
+              >
+                {source}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {articles.map((article) => (
+              <div key={article.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <div className="p-5">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+                      <a 
+                        href={article.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="hover:text-blue-600 transition-colors"
+                      >
+                        {article.title}
+                      </a>
+                    </h3>
+                  </div>
+                  
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                    {article.summary || article.content}
+                  </p>
+                  
+                  <div className="flex flex-wrap justify-between items-center text-xs text-gray-500">
+                    <span className="bg-gray-100 px-2 py-1 rounded">
+                      {article.source}
+                    </span>
+                    <span title={new Date(article.published).toLocaleString()}>
+                      {formatDate(article.published)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {articles.length === 0 && !loading && (
+          <div className="text-center py-12">
+            <div className="text-gray-500 text-lg">没有找到相关新闻</div>
+            <button 
+              onClick={fetchData}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              刷新数据
+            </button>
+          </div>
+        )}
+      </div>
+
+      <footer className="bg-gray-800 text-white py-6 mt-12">
+        <div className="container mx-auto px-4 text-center">
+          <p>© {new Date().getFullYear()} AI 科技新闻聚合 - 实时获取最新AI资讯</p>
+          <p className="text-gray-400 text-sm mt-2">数据每小时自动更新</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+export default App;

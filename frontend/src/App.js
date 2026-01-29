@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import moment from 'moment';
 import { mockArticles, mockSources, mockStats } from './mockData';
+import { useLanguage, LanguageProvider } from './i18n';
 import 'moment/locale/zh-cn';
+import 'moment/locale/en-gb';
 import './App.css';
 
 // Clean source names for better display
@@ -25,6 +27,8 @@ function App() {
   const [selectedSource, setSelectedSource] = useState('');
   const [sources, setSources] = useState([]);
   const [stats, setStats] = useState({});
+  
+  const { t, language, toggleLanguage } = useLanguage();
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -103,7 +107,7 @@ function App() {
   };
 
   const formatDate = (dateString) => {
-    moment.locale('zh-cn');
+    moment.locale(language === 'zh' ? 'zh-cn' : 'en');
     return moment(dateString).fromNow();
   };
 
@@ -111,16 +115,24 @@ function App() {
     <div className="App">
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-6 px-4 shadow-lg">
         <div className="container mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">🤖 AI 科技新闻聚合</h1>
-          <p className="text-blue-100">实时聚合最新的人工智能、机器学习、深度学习等领域新闻</p>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold">{t('headerTitle')}</h1>
+            <button
+              onClick={toggleLanguage}
+              className="bg-white text-blue-600 px-3 py-1 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+            >
+              {language === 'zh' ? 'EN' : '中文'}
+            </button>
+          </div>
+          <p className="text-blue-100">{t('headerSubtitle')}</p>
           
           <div className="mt-4 flex flex-col sm:flex-row gap-4 justify-between items-center">
             <div className="flex flex-wrap gap-2">
               <div className="bg-blue-500 bg-opacity-50 px-3 py-1 rounded-full text-sm">
-                总文章数: {stats.total_articles || 0}
+                {t('totalArticles')} {stats.total_articles || 0}
               </div>
               <div className="bg-indigo-500 bg-opacity-50 px-3 py-1 rounded-full text-sm">
-                数据源: {stats.total_sources || 0}个
+                {t('totalSources')} {stats.total_sources || 0}
               </div>
             </div>
             
@@ -129,14 +141,14 @@ function App() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="搜索AI新闻..."
+                placeholder={t('searchPlaceholder')}
                 className="flex-grow px-4 py-2 rounded-l-lg text-gray-800 focus:outline-none"
               />
               <button 
                 type="submit"
                 className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-r-lg font-medium transition-colors"
               >
-                搜索
+                {t('searchButton')}
               </button>
             </form>
           </div>
@@ -145,13 +157,13 @@ function App() {
 
       <div className="container mx-auto py-6 px-4">
         <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-3">筛选来源:</h2>
+          <h2 className="text-xl font-semibold mb-3">{t('filterSources')}</h2>
           <div className="flex flex-wrap gap-2">
             <button 
               onClick={() => filterBySource('')}
               className={`px-3 py-1 rounded-full text-sm ${!selectedSource ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
             >
-              全部
+              {t('all')}
             </button>
             {sources.slice(0, 10).map((source, index) => (
               <button
@@ -213,12 +225,12 @@ function App() {
 
         {articles.length === 0 && !loading && (
           <div className="text-center py-12">
-            <div className="text-gray-500 text-lg">没有找到相关新闻</div>
+            <div className="text-gray-500 text-lg">{t('noRelatedNews')}</div>
             <button 
               onClick={fetchData}
               className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              刷新数据
+              {t('refreshData')}
             </button>
           </div>
         )}
@@ -226,8 +238,8 @@ function App() {
 
       <footer className="bg-gray-800 text-white py-6 mt-12">
         <div className="container mx-auto px-4 text-center">
-          <p>© {new Date().getFullYear()} AI 科技新闻聚合 - 实时获取最新AI资讯</p>
-          <p className="text-gray-400 text-sm mt-2">数据每小时自动更新</p>
+          <p>{t('copyright')} - {t('footerText')}</p>
+          <p className="text-gray-400 text-sm mt-2">{t('footerUpdateInfo')}</p>
         </div>
       </footer>
     </div>

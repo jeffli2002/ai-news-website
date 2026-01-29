@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import moment from 'moment';
+import { mockArticles, mockSources, mockStats } from './mockData';
 import 'moment/locale/zh-cn';
 import './App.css';
 
@@ -31,6 +32,8 @@ function App() {
       setArticles(response.data.articles);
     } catch (error) {
       console.error('Error fetching news:', error);
+      setArticles(mockArticles);
+      setArticles(mockArticles);('Error fetching news:', error);
     } finally {
       setLoading(false);
     }
@@ -42,6 +45,7 @@ function App() {
       setSources(response.data.sources);
     } catch (error) {
       console.error('Error fetching sources:', error);
+      setSources(mockSources);
     }
   };
 
@@ -51,6 +55,7 @@ function App() {
       setStats(response.data);
     } catch (error) {
       console.error('Error fetching stats:', error);
+      setStats(mockStats);
     }
   };
 

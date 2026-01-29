@@ -1,11 +1,12 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import feedparser
 import requests
 from datetime import datetime
 import json
-import os
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS
 
 # RSS feeds for AI news sources
 RSS_FEEDS = [
@@ -25,12 +26,12 @@ def scrape_rss_feed(feed_url):
         
         for entry in feed.entries[:5]:
             article = {
-                'id': hash(entry.link),
+                'id': abs(hash(entry.link)) % (10 ** 8),
                 'title': entry.get('title', 'No title'),
                 'summary': entry.get('summary', entry.get('description', ''))[:300],
-                'content': entry.get('content', [{'value': ''}])[0].get('value', '')[:500] if 'content' in entry else entry.get('summary', '')[:500],
+                'content': entry.get('content', [{'value': ''}])[0].get('value', '')[:500] if hasattr(entry, 'content') else entry.get('summary', '')[:500],
                 'link': entry.link,
-                'source': feed.feed.get('title', feed_url),
+                'source': feed.feed.get('title', 'Unknown'),
                 'published': entry.get('published', datetime.now().isoformat())
             }
             articles.append(article)
@@ -46,8 +47,12 @@ def fetch_all_news():
         articles = scrape_rss_feed(feed_url)
         all_articles.extend(articles)
     
-    # Sort by published date (newest first)
-    all_articles.sort(key=lambda x: x['published'], reverse=True)
+    # Sort by published date
+    try:
+        all_articles.sort(key=lambda x: x['published'], reverse=True)
+    except:
+        pass
+    
     return all_articles
 
 @app.route('/api/news', methods=['GET'])
@@ -60,7 +65,7 @@ def get_news():
             'total': len(articles)
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e), 'articles': [], 'total': 0}), 200
 
 @app.route('/api/sources', methods=['GET'])
 def get_sources():
@@ -69,7 +74,7 @@ def get_sources():
         sources = list(set([a['source'] for a in articles]))
         return jsonify({'sources': sources})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'sources': [], 'error': str(e)}), 200
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
@@ -81,7 +86,7 @@ def get_stats():
             'total_sources': len(sources)
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'total_articles': 0, 'total_sources': 0}), 200
 
 @app.route('/api/news/search', methods=['GET'])
 def search_news():
@@ -101,9 +106,4 @@ def search_news():
             'total': len(filtered)
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# Vercel serverless function handler
-def handler(request):
-    with app.request_context(request.environ):
-        return app.full_dispatch_request()
+        return jsonify({'articles': [], 'total': 0}), 200

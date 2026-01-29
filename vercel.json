@@ -1,18 +1,17 @@
 {
   "version": 2,
-  "name": "ai-news-website",
+  "framework": "create-react-app",
   "builds": [
     {
-      "src": "backend/app.py",
-      "use": "@vercel/python",
-      "config": { "runtime": "python3.9" }
-    },
-    {
-      "src": "frontend/package.json",
+      "src": "frontend/**",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build"
       }
+    },
+    {
+      "src": "backend/app.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
@@ -22,10 +21,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "frontend/$1",
-      "headers": {
-        "cache-control": "public, max-age=31536000"
-      }
+      "dest": "frontend/build/index.html"
     }
   ]
 }

@@ -209,6 +209,11 @@ if not news_storage:
     
     print(f"Initialized with {len(sample_articles)} sample articles")
 
+# Run an immediate scrape on startup to populate with real data
+print("Running initial news scrape on startup...")
+scrape_all_feeds()
+print(f"Initial scrape completed. Total articles: {len(news_storage)}")
+
 if __name__ == '__main__':
     # Start the scheduler in a separate thread
     scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)

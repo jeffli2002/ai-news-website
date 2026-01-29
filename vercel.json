@@ -1,15 +1,17 @@
 {
-  "version": 2,
-  "builds": [
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/build",
+  "devCommand": "cd frontend && npm start",
+  "installCommand": "cd frontend && npm install",
+  "framework": null,
+  "rewrites": [
     {
-      "src": "api/*.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
+      "source": "/api/:path*",
+      "destination": "/api/news"
+    },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/news.py"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

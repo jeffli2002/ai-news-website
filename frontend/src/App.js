@@ -10,7 +10,7 @@ const cleanSourceName = (source) => {
   const mapping = {
     'openai news': 'OpenAI',
     'ai news': 'AI News',
-    'synced': 'Synced',
+    'synced': 'Synced Review',
     'google ai blog': 'Google AI',
     'deepmind': 'DeepMind',
     'meta ai': 'Meta AI'

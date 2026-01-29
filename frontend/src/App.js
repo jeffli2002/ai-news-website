@@ -5,6 +5,19 @@ import { mockArticles, mockSources, mockStats } from './mockData';
 import 'moment/locale/zh-cn';
 import './App.css';
 
+// Clean source names for better display
+const cleanSourceName = (source) => {
+  const mapping = {
+    'openai news': 'OpenAI',
+    'ai news': 'AI News',
+    'synced': 'Synced',
+    'google ai blog': 'Google AI',
+    'deepmind': 'DeepMind',
+    'meta ai': 'Meta AI'
+  };
+  return mapping[source.toLowerCase()] || source;
+};
+
 function App() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,8 +45,10 @@ function App() {
       setArticles(response.data.articles);
     } catch (error) {
       console.error('Error fetching news:', error);
-      setArticles(mockArticles);
-      setArticles(mockArticles);('Error fetching news:', error);
+      // Only set mock data if we're not in production
+      if (process.env.NODE_ENV !== 'production') {
+        setArticles(mockArticles);
+      }
     } finally {
       setLoading(false);
     }
@@ -163,12 +178,12 @@ function App() {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {articles.map((article) => (
-              <div key={article.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">
+              <div key={article.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-1">
                       <a 
                         href={article.link} 
                         target="_blank" 
@@ -178,17 +193,15 @@ function App() {
                         {article.title}
                       </a>
                     </h3>
+                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                      {article.summary || article.content}
+                    </p>
                   </div>
-                  
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {article.summary || article.content}
-                  </p>
-                  
-                  <div className="flex flex-wrap justify-between items-center text-xs text-gray-500">
-                    <span className="bg-gray-100 px-2 py-1 rounded">
-                      {article.source}
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      {cleanSourceName(article.source)}
                     </span>
-                    <span title={new Date(article.published).toLocaleString()}>
+                    <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded" title={new Date(article.published).toLocaleString()}>
                       {formatDate(article.published)}
                     </span>
                   </div>

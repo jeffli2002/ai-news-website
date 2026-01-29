@@ -167,6 +167,48 @@ def get_stats():
         'sources': sources
     })
 
+# Initialize with sample data if storage is empty
+if not news_storage:
+    print("Initializing with sample articles...")
+    from datetime import datetime
+    sample_articles = [
+        {
+            'id': 1,
+            'title': 'Breakthrough in Large Language Models: New Architecture Achieves Superior Performance',
+            'summary': 'Researchers have developed a novel transformer architecture that significantly improves efficiency and reduces computational requirements while maintaining high performance.',
+            'content': 'The new model architecture introduces several innovations including sparse attention mechanisms, dynamic routing, and improved parameter efficiency. Early tests show 40% reduction in computational requirements with equivalent performance to current state-of-the-art models.',
+            'link': 'https://example-ai-news.com/new-architecture',
+            'published': str(datetime.now()),
+            'source': 'AI Research Today',
+            'scraped_at': str(datetime.now())
+        },
+        {
+            'id': 2,
+            'title': 'OpenAI Releases Next Generation Multimodal AI System',
+            'summary': 'The latest multimodal AI system can process and understand text, images, audio, and video simultaneously with unprecedented accuracy.',
+            'content': 'This advancement represents a significant leap in artificial general intelligence, with applications spanning autonomous systems, content creation, and scientific research. The system demonstrates remarkable capabilities in cross-modal understanding and generation.',
+            'link': 'https://example-ai-news.com/multimodal-ai',
+            'published': str(datetime.now()),
+            'source': 'AI Technology News',
+            'scraped_at': str(datetime.now())
+        },
+        {
+            'id': 3,
+            'title': 'Machine Learning Model Achieves Human-Level Performance in Complex Reasoning Tasks',
+            'summary': 'New benchmarks show that the latest models can perform complex logical reasoning, planning, and problem-solving at human expert levels.',
+            'content': 'The model was tested across diverse domains including mathematics, science, law, and medicine, consistently achieving scores comparable to human experts. This breakthrough has implications for automation across many professional fields.',
+            'link': 'https://example-ai-news.com/human-level-reasoning',
+            'published': str(datetime.now()),
+            'source': 'Deep Learning Daily',
+            'scraped_at': str(datetime.now())
+        }
+    ]
+    
+    for article in sample_articles:
+        news_storage.append(article)
+    
+    print(f"Initialized with {len(sample_articles)} sample articles")
+
 if __name__ == '__main__':
     # Start the scheduler in a separate thread
     scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
